@@ -2,7 +2,7 @@
 # trayracer
 #--------------------------------------------------------------------------
 PROJECT(trayracer)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
 if(MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
@@ -49,6 +49,7 @@ SET(files
 		random.cc
 		material.h
 		material.cc
+		stb_image_write.h
 	)
 SOURCE_GROUP("trayracer" FILES ${files})
 
