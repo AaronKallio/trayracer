@@ -3,6 +3,8 @@
 #include "vec3.h"
 #include "raytracer.h"
 #include "sphere.h"
+#include <stdio.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 
@@ -103,57 +105,12 @@ int main()
     vec3 camPos = { 0,1.0f,10.0f };
     vec3 moveDir = { 0,0,0 };
 
-    wnd.SetKeyPressFunction([&exit, &moveDir, &resetFramebuffer](int key, int scancode, int action, int mods)
-    {
-        switch (key)
-        {
-        case GLFW_KEY_ESCAPE:
-            exit = true;
-            break;
-        case GLFW_KEY_W:
-            moveDir.z -= 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_S:
-            moveDir.z += 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_A:
-            moveDir.x -= 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_D:
-            moveDir.x += 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_SPACE:
-            moveDir.y += 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_LEFT_CONTROL:
-            moveDir.y -= 1.0f;
-            resetFramebuffer |= true;
-            break;
-        default:
-            break;
-        }
-    });
-
+    
     float pitch = 0;
     float yaw = 0;
     float oldx = 0;
     float oldy = 0;
 
-    wnd.SetMouseMoveFunction([&pitch, &yaw, &oldx, &oldy, &resetFramebuffer](double x, double y)
-    {
-        x *= -0.1;
-        y *= -0.1;
-        yaw = x - oldx;
-        pitch = y - oldy;
-        resetFramebuffer |= true;
-        oldx = x;
-        oldy = y;
-    });
 
     float rotx = 0;
     float roty = 0;
@@ -174,7 +131,9 @@ int main()
 
         // poll input
         wnd.Update();
+        int channels = 3; // RGB
 
+        //int stbi_write_jpg(char const* filename, int w, int h, int comp, const void* data, int quality);
         rotx -= pitch;
         roty -= yaw;
 
@@ -219,6 +178,18 @@ int main()
 
         wnd.Blit((float*)&framebufferCopy[0], w, h);
         wnd.SwapBuffers();
+
+        std::vector<unsigned char> pixels(w* h * 3);
+
+        for (size_t i = 0; i < w * h; i++) {
+            pixels[i * 3 + 0] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].r) * 255.0f);
+            pixels[i * 3 + 1] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].g) * 255.0f);
+            pixels[i * 3 + 2] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].b) * 255.0f);
+        }
+        //stbi_write_jpg("output.jpg", w, h, 3, framebuffer.data(), 90);
+        stbi_write_jpg("output.jpg", w, h, 3, pixels.data(), 90);
+        wnd.Close();
+        return 0;
     }
 
     if (wnd.IsOpen())
