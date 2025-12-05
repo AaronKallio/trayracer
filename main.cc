@@ -4,6 +4,7 @@
 #include "raytracer.h"
 #include "sphere.h"
 #include <stdio.h>
+#include <iostream>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -12,6 +13,22 @@
 
 int main()
 { 
+    
+    unsigned w;
+    unsigned h;
+    int raysPerPixel = 1;
+    int sphereNum;
+    std::cout << "Enter Width: ";
+    std::cin >> w;
+    std::cout << "Enter Height: ";
+    std::cin >> h;
+    std::cout << "Enter Rays Per Pixel: ";
+    std::cin >> raysPerPixel;
+    std::cout << "Enter Sphere Amount: ";
+    std::cin >> sphereNum;
+
+
+
     Display::Window wnd;
     
     wnd.SetTitle("TrayRacer");
@@ -21,11 +38,11 @@ int main()
 
     std::vector<Color> framebuffer;
 
-    const unsigned w = 200;
-    const unsigned h = 100;
+    //const unsigned w = 200;
+    //const unsigned h = 100;
     framebuffer.resize(w * h);
     
-    int raysPerPixel = 1;
+    
     int maxBounces = 5;
 
     Raytracer rt = Raytracer(w, h, framebuffer, raysPerPixel, maxBounces);
@@ -38,7 +55,7 @@ int main()
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
     rt.AddObject(ground);
 
-    for (int it = 0; it < 12; it++)
+    for (int it = 0; it < sphereNum; it++)
     {
         {
             Material* mat = new Material();
