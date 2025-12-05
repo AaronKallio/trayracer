@@ -1,6 +1,6 @@
 #include "raytracer.h"
 #include <random>
-
+int rayCount = 0;
 //------------------------------------------------------------------------------
 /**
 */
@@ -39,6 +39,7 @@ Raytracer::Raytrace()
                 
                 Ray* ray = new Ray(get_position(this->view), direction);
                 color += this->TracePath(*ray, 0);
+                rayCount++;
                 delete ray;
             }
 
@@ -66,6 +67,7 @@ Raytracer::TracePath(Ray ray, unsigned n)
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance, this->objects))
     {
+        rayCount++;
         Ray* scatteredRay = new Ray(hitObject->ScatterRay(ray, hitPoint, hitNormal));
         if (n < this->bounces)
         {
@@ -175,4 +177,9 @@ Raytracer::Skybox(vec3 direction)
     float t = 0.5*(direction.y + 1.0);
     vec3 vec = vec3(1.0, 1.0, 1.0) * (1.0 - t) + vec3(0.5, 0.7, 1.0) * t;
     return {(float)vec.x, (float)vec.y, (float)vec.z};
+}
+
+int Raytracer::RayCounter()
+{   
+    return rayCount;
 }

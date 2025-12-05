@@ -7,6 +7,8 @@
 #include <iostream>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include <random>
+#include <chrono>
 
 
 #define degtorad(angle) angle * MPI / 180
@@ -26,6 +28,14 @@ int main()
     std::cin >> raysPerPixel;
     std::cout << "Enter Sphere Amount: ";
     std::cin >> sphereNum;
+
+    std::mt19937 rng;
+    rng.seed(1);
+    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    //std::mt19937 rngMinus;
+    //rngMinus.seed(1);
+    std::uniform_real_distribution<float> distMinus(-1.0f, 1.0f);
 
 
 
@@ -60,55 +70,55 @@ int main()
         {
             Material* mat = new Material();
                 mat->type = "Lambertian";
-                float r = RandomFloat();
-                float g = RandomFloat();
-                float b = RandomFloat();
+                float r = dist(rng);
+                float g = dist(rng);
+                float b = dist(rng);
                 mat->color = { r,g,b };
-                mat->roughness = RandomFloat();
+                mat->roughness = dist(rng);
                 const float span = 10.0f;
                 Sphere* ground = new Sphere(
-                    RandomFloat() * 0.7f + 0.2f,
+                    dist(rng) * 0.7f + 0.2f,
                     {
-                        RandomFloatNTP() * span,
-                        RandomFloat() * span + 0.2f,
-                        RandomFloatNTP() * span
+                        distMinus(rng) * span,
+                        dist(rng)* span + 0.2f,
+                        distMinus(rng)* span
                     },
                     mat);
             rt.AddObject(ground);
         }{
             Material* mat = new Material();
             mat->type = "Conductor";
-            float r = RandomFloat();
-            float g = RandomFloat();
-            float b = RandomFloat();
+            float r = dist(rng);
+            float g = dist(rng);
+            float b = dist(rng);
             mat->color = { r,g,b };
-            mat->roughness = RandomFloat();
+            mat->roughness = dist(rng);
             const float span = 30.0f;
             Sphere* ground = new Sphere(
-                RandomFloat() * 0.7f + 0.2f,
+                dist(rng) * 0.7f + 0.2f,
                 {
-                    RandomFloatNTP() * span,
-                    RandomFloat() * span + 0.2f,
-                    RandomFloatNTP() * span
+                    distMinus(rng)* span,
+                    dist(rng)* span + 0.2f,
+                    distMinus(rng)* span
                 },
                 mat);
             rt.AddObject(ground);
         }{
             Material* mat = new Material();
             mat->type = "Dielectric";
-            float r = RandomFloat();
-            float g = RandomFloat();
-            float b = RandomFloat();
+            float r = dist(rng);
+            float g = dist(rng);
+            float b = dist(rng);
             mat->color = { r,g,b };
-            mat->roughness = RandomFloat();
+            mat->roughness = dist(rng);
             mat->refractionIndex = 1.65;
             const float span = 25.0f;
             Sphere* ground = new Sphere(
-                RandomFloat() * 0.7f + 0.2f,
+                dist(rng) * 0.7f + 0.2f,
                 {
-                    RandomFloatNTP() * span,
-                    RandomFloat() * span + 0.2f,
-                    RandomFloatNTP() * span
+                    distMinus(rng)* span,
+                    dist(rng)* span + 0.2f,
+                    distMinus(rng)* span
                 },
                 mat);
             rt.AddObject(ground);
@@ -173,8 +183,18 @@ int main()
             rt.Clear();
             frameIndex = 0;
         }
-
+        auto start = std::chrono::high_resolution_clock::now();
         rt.Raytrace();
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+
+        std::cout << "Elapsed time in seconds is " << elapsed.count()<<"\n";
+        int rayCount = rt.RayCounter();
+        std::cout << "Ray amount is " << rayCount << "\n";
+        std::cout << "Rays per second is " << rayCount/ elapsed.count() << "\n";
+
+
+
         frameIndex++;
 
         // Get the average distribution of all samples
