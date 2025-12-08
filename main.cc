@@ -36,7 +36,7 @@ int main()
     //std::mt19937 rngMinus;
     //rngMinus.seed(1);
     std::uniform_real_distribution<float> distMinus(-1.0f, 1.0f);
-
+    std::uniform_int_distribution<int> ballType(0, 2);
 
 
     Display::Window wnd;
@@ -67,6 +67,9 @@ int main()
 
     for (int it = 0; it < sphereNum; it++)
     {
+        int ball = ballType(rng);
+
+        if(ball ==1)
         {
             Material* mat = new Material();
                 mat->type = 1;
@@ -85,7 +88,9 @@ int main()
                     },
                     mat);
             rt.AddObject(ground);
-        }{
+        }
+        else if(ball==3)
+        {
             Material* mat = new Material();
             mat->type = 3;
             float r = dist(rng);
@@ -103,7 +108,8 @@ int main()
                 },
                 mat);
             rt.AddObject(ground);
-        }{
+        }
+        else{
             Material* mat = new Material();
             mat->type = 2;
             float r = dist(rng);

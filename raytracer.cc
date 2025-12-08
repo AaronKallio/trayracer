@@ -1,4 +1,5 @@
 #include "raytracer.h"
+#include <thread>
 #include <random>
 int rayCount = 0;
 std::vector<Object*> uniqueObjects;
@@ -41,6 +42,8 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 //------------------------------------------------------------------------------
 /**
 */
+
+
 void
 Raytracer::Raytrace()
 {
@@ -76,6 +79,59 @@ Raytracer::Raytrace()
         }
     }
 }
+/*
+void Raytracer::Raytrace()
+{
+    int num_threads = std::thread::hardware_concurrency();
+    std::vector<std::thread> threads;
+
+    // Lambda to process a range of rows
+    auto render_rows = [this](int start_y, int end_y) {
+        static int leet = 1337; // Thread-local copy
+        std::mt19937 generator(leet++);
+        std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+        for (int y = start_y; y < end_y; ++y)
+        {
+            for (int x = 0; x < this->width; ++x)
+            {
+                Color color;
+                for (int i = 0; i < this->rpp; ++i)
+                {
+                    float u = ((float(x + dis(generator)) / float(this->width)) * 2.0f) - 1.0f;
+                    float v = ((float(y + dis(generator)) / float(this->height)) * 2.0f) - 1.0f;
+
+                    vec3 direction = vec3(u, v, -1.0f);
+                    direction = transform(direction, this->frustum);
+
+                    Ray* ray = new Ray(get_position(this->view), direction);
+                    color += this->TracePath(*ray, 0);
+                    rayCount++;
+                    delete ray;
+                }
+
+                color.r /= this->rpp;
+                color.g /= this->rpp;
+                color.b /= this->rpp;
+
+                this->frameBuffer[y * this->width + x] += color;
+            }
+        }
+        };
+
+    // Split rows across threads
+    int rows_per_thread = this->height / num_threads;
+    for (int t = 0; t < num_threads; ++t)
+    {
+        int start = t * rows_per_thread;
+        int end = (t == num_threads - 1) ? this->height : start + rows_per_thread;
+        threads.emplace_back(render_rows, start, end);
+    }
+
+    // Join threads
+    for (auto& th : threads) th.join();
+}
+*/
 
 //------------------------------------------------------------------------------
 /**
@@ -118,7 +174,6 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
 {
     bool isHit = false;
     HitResult closestHit;
-    int numHits = 0;
     HitResult hit;
 
     // First, sort the world objects
@@ -149,16 +204,26 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
     {
         auto objectIt = &uniqueObjects[i];
         Object* object = *objectIt;
+        
 
         auto opt = object->Intersect(ray, closestHit.t);
         if (opt.HasValue())
         {
             hit = opt.Get();
             assert(hit.t < closestHit.t);
+            hitPoint = hit.p;
+            hitNormal = hit.normal;
+            hitObject = hit.object;
+            //distance = closestHit.t;
+
+            return true;
+
+
+            hit = opt.Get();
+            assert(hit.t < closestHit.t);
             closestHit = hit;
             closestHit.object = object;
             isHit = true;
-            numHits++;
 
 
         }
