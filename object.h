@@ -22,6 +22,21 @@ struct HitResult
     float t = FLT_MAX;
 };
 
+struct Ray4 {
+    __m128 ox, oy, oz; // ray origins
+    __m128 dx, dy, dz; // ray directions
+};
+
+struct Hit4 {
+    __m128 t;          // hit distances
+    __m128 mask;       // 1.0 if hit, 0.0 if no hit
+};
+
+
+
+
+
+
 template<class TYPE>
 class Optional
 {
@@ -83,15 +98,15 @@ public:
         static unsigned long long idCounter = 0;
         id = idCounter++;
         // Reserve characters for naming this object something!
-        //name = new char[256];
-        //name[0] = 'U';
-        //name[1] = 'n';
-        //name[2] = 'n';
-        //name[3] = 'a';
-        //name[4] = 'm';
-        //name[5] = 'e';
-        //name[6] = 'd';
-        //name[7] = '\0';
+        name = new char[256];
+        name[0] = 'U';
+        name[1] = 'n';
+        name[2] = 'n';
+        name[3] = 'a';
+        name[4] = 'm';
+        name[5] = 'e';
+        name[6] = 'd';
+        name[7] = '\0';
 
         purpose = std::string("I don't have a purpose at the moment, but hopefully the programmer that overrides me will give me one. :)");
     }
@@ -99,18 +114,19 @@ public:
     virtual ~Object()
     {
         // clean up name!
-        //delete name;
+        delete name;
     }
 
     virtual Optional<HitResult> Intersect(Ray ray, float maxDist) { return {}; };
+    virtual Hit4 Intersect4(Ray4 ray, __m128 cx, __m128 cy, __m128 cz, float radius, float maxDist) { { return {}; } };
     virtual Color GetColor() = 0;
     virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) { return Ray({ 0,0,0 }, {1,1,1}); };
-    //std::string GetName() { return std::string((const char*)name); }
+    std::string GetName() { return std::string((const char*)name); }
     unsigned long long GetId() { return this->id; }
 
 private:
     volatile bool isBigObject = false;
-    //volatile int* name;
+    volatile char* name;
     unsigned long long id;
     std::string purpose;
 };

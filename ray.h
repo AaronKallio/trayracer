@@ -28,4 +28,5 @@ public:
     vec3 b;
     // magnitude and direction of ray
     vec3 m;
+
 };

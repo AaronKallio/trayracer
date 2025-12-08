@@ -111,6 +111,8 @@ Raytracer::TracePath(Ray ray, unsigned n)
 //------------------------------------------------------------------------------
 /**
 */
+
+
 bool
 Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
 {
@@ -141,10 +143,11 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
         }
     }
     */
-    std::vector<Object*> rayObjects = uniqueObjects;
-    while (rayObjects.size() > 0)
+    //std::vector<Object*> rayObjects = uniqueObjects;
+    for(int i = 0; i < uniqueObjects.size();i++)
+    //while (rayObjects.size() > 0)
     {
-        auto objectIt = rayObjects.begin();
+        auto objectIt = &uniqueObjects[i];
         Object* object = *objectIt;
 
         auto opt = object->Intersect(ray, closestHit.t);
@@ -156,14 +159,16 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
             closestHit.object = object;
             isHit = true;
             numHits++;
+
+
         }
-        rayObjects.erase(objectIt);
+        //rayObjects.erase(objectIt);
     }
 
     hitPoint = closestHit.p;
     hitNormal = closestHit.normal;
     hitObject = closestHit.object;
-    distance = closestHit.t;
+    //distance = closestHit.t;
     
     return isHit;
 }
