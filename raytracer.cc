@@ -1,6 +1,30 @@
 #include "raytracer.h"
 #include <random>
 int rayCount = 0;
+std::vector<Object*> uniqueObjects;
+
+void
+Raytracer::SetObjectArr()
+{
+    for (size_t i = 0; i < this->objects.size(); ++i)
+    {
+        Object* obj = this->objects[i];
+        std::vector<Object*>::iterator it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(),
+            [obj](const auto& val)
+            {
+                return (obj->GetId() == val->GetId());
+            }
+        );
+
+        if (it == uniqueObjects.end())
+        {
+            uniqueObjects.push_back(obj);
+        }
+    }
+}
+
+
+
 //------------------------------------------------------------------------------
 /**
 */
@@ -96,9 +120,10 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
     HitResult hit;
 
     // First, sort the world objects
-    std::sort(world.begin(), world.end());
+    //std::sort(world.begin(), world.end());
 
     // then add all objects into a remaining objects set of unique objects, so that we don't trace against the same object twice
+    /*
     std::vector<Object*> uniqueObjects;
     for (size_t i = 0; i < world.size(); ++i)
     {
@@ -106,7 +131,7 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
         std::vector<Object*>::iterator it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(), 
                 [obj](const auto& val)
                 {
-                    return (obj->GetName() == val->GetName() && obj->GetId() == val->GetId());
+                    return (obj->GetId() == val->GetId());
                 }
             );
 
@@ -115,10 +140,11 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
             uniqueObjects.push_back(obj);
         }
     }
-
-    while (uniqueObjects.size() > 0)
+    */
+    std::vector<Object*> rayObjects = uniqueObjects;
+    while (rayObjects.size() > 0)
     {
-        auto objectIt = uniqueObjects.begin();
+        auto objectIt = rayObjects.begin();
         Object* object = *objectIt;
 
         auto opt = object->Intersect(ray, closestHit.t);
@@ -131,7 +157,7 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
             isHit = true;
             numHits++;
         }
-        uniqueObjects.erase(objectIt);
+        rayObjects.erase(objectIt);
     }
 
     hitPoint = closestHit.p;

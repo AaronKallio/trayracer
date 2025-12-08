@@ -18,7 +18,7 @@ public:
 
     // start raytracing!
     void Raytrace();
-
+    void SetObjectArr();
     // add object to scene
     void AddObject(Object* obj);
 

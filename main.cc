@@ -59,7 +59,7 @@ int main()
 
     // Create some objects
     Material* mat = new Material();
-    mat->type = "Lambertian";
+    mat->type = 1;
     mat->color = { 0.5,0.5,0.5 };
     mat->roughness = 0.3;
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
@@ -69,7 +69,7 @@ int main()
     {
         {
             Material* mat = new Material();
-                mat->type = "Lambertian";
+                mat->type = 1;
                 float r = dist(rng);
                 float g = dist(rng);
                 float b = dist(rng);
@@ -87,7 +87,7 @@ int main()
             rt.AddObject(ground);
         }{
             Material* mat = new Material();
-            mat->type = "Conductor";
+            mat->type = 3;
             float r = dist(rng);
             float g = dist(rng);
             float b = dist(rng);
@@ -105,7 +105,7 @@ int main()
             rt.AddObject(ground);
         }{
             Material* mat = new Material();
-            mat->type = "Dielectric";
+            mat->type = 2;
             float r = dist(rng);
             float g = dist(rng);
             float b = dist(rng);
@@ -184,6 +184,7 @@ int main()
             frameIndex = 0;
         }
         auto start = std::chrono::high_resolution_clock::now();
+        rt.SetObjectArr();
         rt.Raytrace();
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
