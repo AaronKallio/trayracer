@@ -95,7 +95,7 @@ class Object
 public:
     Object() 
     {
-        static unsigned long long idCounter = 0;
+        static int idCounter = 0;
         id = idCounter++;
         // Reserve characters for naming this object something!
         name = new char[256];
@@ -108,7 +108,7 @@ public:
         name[6] = 'd';
         name[7] = '\0';
 
-        purpose = std::string("I don't have a purpose at the moment, but hopefully the programmer that overrides me will give me one. :)");
+        //purpose = std::string("I don't have a purpose at the moment, but hopefully the programmer that overrides me will give me one. :)");
     }
 
     virtual ~Object()
@@ -118,15 +118,15 @@ public:
     }
 
     virtual Optional<HitResult> Intersect(Ray ray, float maxDist) { return {}; };
-    virtual Hit4 Intersect4(Ray4 ray, __m128 cx, __m128 cy, __m128 cz, float radius, float maxDist) { { return {}; } };
+    virtual Hit4 Intersect4(Ray4 ray, __m128 cx, __m128 cy, __m128 cz, float radius, float maxDist) { { return {}; } }; //make this take maybe 2 arrays or something and do sse perkele 
     virtual Color GetColor() = 0;
     virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) { return Ray({ 0,0,0 }, {1,1,1}); };
     std::string GetName() { return std::string((const char*)name); }
-    unsigned long long GetId() { return this->id; }
+    int GetId() { return this->id; }
 
 private:
     volatile bool isBigObject = false;
     volatile char* name;
-    unsigned long long id;
+    int id;
     std::string purpose;
 };

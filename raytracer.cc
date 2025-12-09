@@ -43,7 +43,7 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 /**
 */
 
-
+/*
 void
 Raytracer::Raytrace()
 {
@@ -79,7 +79,7 @@ Raytracer::Raytrace()
         }
     }
 }
-/*
+
 void Raytracer::Raytrace()
 {
     int num_threads = std::thread::hardware_concurrency();
@@ -118,6 +118,52 @@ void Raytracer::Raytrace()
             }
         }
         };
+*/
+
+
+
+    void Raytracer::Raytrace()
+    {
+        int num_threads = std::thread::hardware_concurrency();
+        std::vector<std::thread> threads;
+
+        // Lambda to process a range of rows
+        auto render_rows = [this](int start_y, int end_y) {
+            static int leet = 1337; // Thread-local copy
+            std::mt19937 generator(leet++);
+            std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+            for (int y = start_y; y < end_y; ++y)
+            {
+                for (int x = 0; x < this->width; ++x)
+                {
+                    Color color;
+                    for (int i = 0; i < this->rpp; ++i)
+                    {
+
+                        float u = ((float(x + dis(generator)) / float(this->width)) * 2.0f) - 1.0f;
+                        float v = ((float(y + dis(generator)) / float(this->height)) * 2.0f) - 1.0f;
+
+                        vec3 direction = vec3(u, v, -1.0f);
+                        direction = transform(direction, this->frustum);
+
+                        Ray* ray = new Ray(get_position(this->view), direction);
+                        color += this->TracePath(*ray, 0);
+                        rayCount++;
+                        delete ray;
+                    }
+
+                    color.r /= this->rpp;
+                    color.g /= this->rpp;
+                    color.b /= this->rpp;
+
+                    this->frameBuffer[y * this->width + x] += color;
+                }
+            }
+            };
+
+
+
 
     // Split rows across threads
     int rows_per_thread = this->height / num_threads;
@@ -131,7 +177,7 @@ void Raytracer::Raytrace()
     // Join threads
     for (auto& th : threads) th.join();
 }
-*/
+
 
 //------------------------------------------------------------------------------
 /**
@@ -168,6 +214,79 @@ Raytracer::TracePath(Ray ray, unsigned n)
 /**
 */
 
+/*
+bool
+Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
+{
+    bool isHit = false;
+    HitResult closestHit;
+    HitResult hit;
+
+   
+    for(int i = 0; i < uniqueObjects.size();i++)
+    {
+        
+        
+        if (uniqueObjects.size()-i>=4) {
+            Object* tempArr[4];
+            auto objectIt = &uniqueObjects[i];
+            tempArr[0] = *objectIt;
+            objectIt = &uniqueObjects[i+1];
+            tempArr[1] = *objectIt;
+            objectIt = &uniqueObjects[i + 2];
+            tempArr[2] = *objectIt;
+            objectIt = &uniqueObjects[i + 3];
+            tempArr[3] = *objectIt;
+            i += 3;
+            
+            
+            for (int i = 0; i < 4; i++) {
+                if (tempArr[i].HasValue())
+                {
+                    hit = tempArr[i].Get();
+                    assert(hit.t < closestHit.t);
+                    hitPoint = hit.p;
+                    hitNormal = hit.normal;
+                    hitObject = hit.object;
+                    return true;
+                }
+            }
+
+        }
+        else {
+            auto objectIt = &uniqueObjects[i];
+            Object* object = *objectIt;
+            auto opt = object->Intersect(ray, closestHit.t);
+            if (opt.HasValue())
+            {
+                hit = opt.Get();
+                assert(hit.t < closestHit.t);
+                hitPoint = hit.p;
+                hitNormal = hit.normal;
+                hitObject = hit.object;
+                //distance = closestHit.t;
+
+                return true;
+
+
+                hit = opt.Get();
+                assert(hit.t < closestHit.t);
+                closestHit = hit;
+                closestHit.object = object;
+                isHit = true;
+
+
+            }
+        }
+
+    }
+
+    hitPoint = closestHit.p;
+    hitNormal = closestHit.normal;
+    hitObject = closestHit.object;
+    return isHit;
+}
+*/
 
 bool
 Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
@@ -176,68 +295,40 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
     HitResult closestHit;
     HitResult hit;
 
-    // First, sort the world objects
-    //std::sort(world.begin(), world.end());
 
-    // then add all objects into a remaining objects set of unique objects, so that we don't trace against the same object twice
-    /*
-    std::vector<Object*> uniqueObjects;
-    for (size_t i = 0; i < world.size(); ++i)
+    for (int i = 0; i < uniqueObjects.size(); i++)
     {
-        Object* obj = world[i];
-        std::vector<Object*>::iterator it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(), 
-                [obj](const auto& val)
-                {
-                    return (obj->GetId() == val->GetId());
-                }
-            );
+           auto objectIt = &uniqueObjects[i];
+            Object* object = *objectIt;
+            auto opt = object->Intersect(ray, closestHit.t);
+            if (opt.HasValue())
+            {
+                hit = opt.Get();
+                assert(hit.t < closestHit.t);
+                hitPoint = hit.p;
+                hitNormal = hit.normal;
+                hitObject = hit.object;
+                //distance = closestHit.t;
 
-        if (it == uniqueObjects.end())
-        {
-            uniqueObjects.push_back(obj);
-        }
-    }
-    */
-    //std::vector<Object*> rayObjects = uniqueObjects;
-    for(int i = 0; i < uniqueObjects.size();i++)
-    //while (rayObjects.size() > 0)
-    {
-        auto objectIt = &uniqueObjects[i];
-        Object* object = *objectIt;
-        
-
-        auto opt = object->Intersect(ray, closestHit.t);
-        if (opt.HasValue())
-        {
-            hit = opt.Get();
-            assert(hit.t < closestHit.t);
-            hitPoint = hit.p;
-            hitNormal = hit.normal;
-            hitObject = hit.object;
-            //distance = closestHit.t;
-
-            return true;
+                return true;
 
 
-            hit = opt.Get();
-            assert(hit.t < closestHit.t);
-            closestHit = hit;
-            closestHit.object = object;
-            isHit = true;
+                hit = opt.Get();
+                assert(hit.t < closestHit.t);
+                closestHit = hit;
+                closestHit.object = object;
+                isHit = true;
 
 
-        }
-        //rayObjects.erase(objectIt);
+            }
+
     }
 
     hitPoint = closestHit.p;
     hitNormal = closestHit.normal;
     hitObject = closestHit.object;
-    //distance = closestHit.t;
-    
     return isHit;
 }
-
 
 //------------------------------------------------------------------------------
 /**
@@ -278,4 +369,9 @@ Raytracer::Skybox(vec3 direction)
 int Raytracer::RayCounter()
 {   
     return rayCount;
+}
+
+
+bool Raytracer::Sphereintersect(Object* objArr[],float t) {
+    return true;
 }

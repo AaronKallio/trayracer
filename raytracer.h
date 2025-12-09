@@ -42,6 +42,7 @@ public:
 
     // get the color of the skybox in a direction
     Color Skybox(vec3 direction);
+    bool Sphereintersect(Object* objArr[], float t);
 
     std::vector<Color>& frameBuffer;
     
