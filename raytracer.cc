@@ -189,7 +189,7 @@ Raytracer::TracePath(Ray ray, unsigned n)
     vec3 hitPoint;
     vec3 hitNormal;
     Object* hitObject = nullptr;
-    float distance = FLT_MAX;
+    float distance = FLT_MAX;  
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance, this->objects))
     {
@@ -308,7 +308,7 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
                 hitPoint = hit.p;
                 hitNormal = hit.normal;
                 hitObject = hit.object;
-                //distance = closestHit.t;
+                distance = closestHit.t;
 
                 return true;
 
