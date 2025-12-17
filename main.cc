@@ -64,10 +64,10 @@ int main()
     mat->roughness = 0.3;
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
     rt.AddObject(ground);
-
+    //will make sphereNum amount of spheres instead of sphereNum * 3 
     for (int it = 0; it < sphereNum; it++)
     {
-        int ball = ballType(rng);
+        int ball = ballType(rng); //random number to randomly choose which type of sphere
 
         if(ball ==1)
         {
@@ -166,7 +166,6 @@ int main()
         wnd.Update();
         int channels = 3; // RGB
 
-        //int stbi_write_jpg(char const* filename, int w, int h, int comp, const void* data, int quality);
         rotx -= pitch;
         roty -= yaw;
 
@@ -226,11 +225,10 @@ int main()
         std::vector<unsigned char> pixels(w* h * 3);
 
         for (size_t i = 0; i < w * h; i++) {
-            pixels[i * 3 + 0] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].r) * 255.0f);
+            pixels[i * 3 + 0] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].r) * 255.0f);  //resizes the RGB for stbi image output
             pixels[i * 3 + 1] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].g) * 255.0f);
             pixels[i * 3 + 2] = static_cast<unsigned char>(std::min(1.0f, framebuffer[i].b) * 255.0f);
         }
-        //stbi_write_jpg("output.jpg", w, h, 3, framebuffer.data(), 90);
         stbi_write_jpg("output.jpg", w, h, 3, pixels.data(), 90);
         wnd.Close();
         return 0;

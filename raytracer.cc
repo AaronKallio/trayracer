@@ -2,7 +2,7 @@
 #include <thread>
 #include <random>
 int rayCount = 0;
-std::vector<Object*> uniqueObjects;
+std::vector<Object*> uniqueObjects;  //store all the objects once so that they dont have to be re counted for every pixel
 
 void
 Raytracer::SetObjectArr()
@@ -43,93 +43,17 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 /**
 */
 
-/*
-void
-Raytracer::Raytrace()
-{
-    static int leet = 1337;
-    std::mt19937 generator (leet++);
-    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-
-    for (int x = 0; x < this->width; ++x)
-    {
-        for (int y = 0; y < this->height; ++y)
-        {
-            Color color;
-            for (int i = 0; i < this->rpp; ++i)
-            {
-                float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
-                float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
-
-                vec3 direction = vec3(u, v, -1.0f);
-                direction = transform(direction, this->frustum);
-                
-                Ray* ray = new Ray(get_position(this->view), direction);
-                color += this->TracePath(*ray, 0);
-                rayCount++;
-                delete ray;
-            }
-
-            // divide by number of samples per pixel, to get the average of the distribution
-            color.r /= this->rpp;
-            color.g /= this->rpp;
-            color.b /= this->rpp;
-
-            this->frameBuffer[y * this->width + x] += color;
-        }
-    }
-}
-
-void Raytracer::Raytrace()
-{
-    int num_threads = std::thread::hardware_concurrency();
-    std::vector<std::thread> threads;
-
-    // Lambda to process a range of rows
-    auto render_rows = [this](int start_y, int end_y) {
-        static int leet = 1337; // Thread-local copy
-        std::mt19937 generator(leet++);
-        std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-
-        for (int y = start_y; y < end_y; ++y)
-        {
-            for (int x = 0; x < this->width; ++x)
-            {
-                Color color;
-                for (int i = 0; i < this->rpp; ++i)
-                {
-                    float u = ((float(x + dis(generator)) / float(this->width)) * 2.0f) - 1.0f;
-                    float v = ((float(y + dis(generator)) / float(this->height)) * 2.0f) - 1.0f;
-
-                    vec3 direction = vec3(u, v, -1.0f);
-                    direction = transform(direction, this->frustum);
-
-                    Ray* ray = new Ray(get_position(this->view), direction);
-                    color += this->TracePath(*ray, 0);
-                    rayCount++;
-                    delete ray;
-                }
-
-                color.r /= this->rpp;
-                color.g /= this->rpp;
-                color.b /= this->rpp;
-
-                this->frameBuffer[y * this->width + x] += color;
-            }
-        }
-        };
-*/
-
-
 
     void Raytracer::Raytrace()
     {
+        //splits the pixels into rows and uses multithreading - faster for the most part except when
+        // there is a low amount of pixels in the first place e.g. 100x100
+        
         int num_threads = std::thread::hardware_concurrency();
         std::vector<std::thread> threads;
 
-        // Lambda to process a range of rows
         auto render_rows = [this](int start_y, int end_y) {
-            static int leet = 1337; // Thread-local copy
+            static int leet = 1337; // randomness with seed to make image more realistic (no hard edges etc)
             std::mt19937 generator(leet++);
             std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
@@ -148,7 +72,7 @@ void Raytracer::Raytrace()
                         direction = transform(direction, this->frustum);
 
                         Ray* ray = new Ray(get_position(this->view), direction);
-                        color += this->TracePath(*ray, 0);
+                        color += this->TracePath(*ray, 0);   //
                         rayCount++;
                         delete ray;
                     }
@@ -214,79 +138,6 @@ Raytracer::TracePath(Ray ray, unsigned n)
 /**
 */
 
-/*
-bool
-Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
-{
-    bool isHit = false;
-    HitResult closestHit;
-    HitResult hit;
-
-   
-    for(int i = 0; i < uniqueObjects.size();i++)
-    {
-        
-        
-        if (uniqueObjects.size()-i>=4) {
-            Object* tempArr[4];
-            auto objectIt = &uniqueObjects[i];
-            tempArr[0] = *objectIt;
-            objectIt = &uniqueObjects[i+1];
-            tempArr[1] = *objectIt;
-            objectIt = &uniqueObjects[i + 2];
-            tempArr[2] = *objectIt;
-            objectIt = &uniqueObjects[i + 3];
-            tempArr[3] = *objectIt;
-            i += 3;
-            
-            
-            for (int i = 0; i < 4; i++) {
-                if (tempArr[i].HasValue())
-                {
-                    hit = tempArr[i].Get();
-                    assert(hit.t < closestHit.t);
-                    hitPoint = hit.p;
-                    hitNormal = hit.normal;
-                    hitObject = hit.object;
-                    return true;
-                }
-            }
-
-        }
-        else {
-            auto objectIt = &uniqueObjects[i];
-            Object* object = *objectIt;
-            auto opt = object->Intersect(ray, closestHit.t);
-            if (opt.HasValue())
-            {
-                hit = opt.Get();
-                assert(hit.t < closestHit.t);
-                hitPoint = hit.p;
-                hitNormal = hit.normal;
-                hitObject = hit.object;
-                //distance = closestHit.t;
-
-                return true;
-
-
-                hit = opt.Get();
-                assert(hit.t < closestHit.t);
-                closestHit = hit;
-                closestHit.object = object;
-                isHit = true;
-
-
-            }
-        }
-
-    }
-
-    hitPoint = closestHit.p;
-    hitNormal = closestHit.normal;
-    hitObject = closestHit.object;
-    return isHit;
-}
-*/
 
 bool
 Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
@@ -298,7 +149,7 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
 
     for (int i = 0; i < uniqueObjects.size(); i++)
     {
-           auto objectIt = &uniqueObjects[i];
+           auto objectIt = &uniqueObjects[i]; //uses pre prepared array of objects and doesnt sort for no reason 
             Object* object = *objectIt;
             auto opt = object->Intersect(ray, closestHit.t);
             if (opt.HasValue())
@@ -310,16 +161,7 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
                 hitObject = hit.object;
                 distance = closestHit.t;
 
-                return true;
-
-
-                hit = opt.Get();
-                assert(hit.t < closestHit.t);
-                closestHit = hit;
-                closestHit.object = object;
-                isHit = true;
-
-
+                return true;   //used to only return after every object has been checked 
             }
 
     }
