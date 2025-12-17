@@ -22,6 +22,8 @@ Raytracer::SetObjectArr()
             uniqueObjects.push_back(obj);
         }
     }
+    //std::sort(uniqueObjects.begin(), uniqueObjects.end());
+    //sort(uniqueObjects);
 }
 
 
