@@ -1,3 +1,4 @@
+/*
 #include "raytracer.h"
 #include <thread>
 #include <random>
@@ -28,9 +29,7 @@ Raytracer::SetObjectArr()
 
 
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces) :
     frameBuffer(frameBuffer),
     rpp(rpp),
@@ -41,9 +40,7 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
     // empty
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 
 
     void Raytracer::Raytrace()
@@ -105,10 +102,7 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 }
 
 
-//------------------------------------------------------------------------------
-/**
- * @parameter n - the current bounce level
-*/
+
 Color
 Raytracer::TracePath(Ray ray, unsigned n)
 {
@@ -136,9 +130,7 @@ Raytracer::TracePath(Ray ray, unsigned n)
     return this->Skybox(ray.m);
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 
 
 bool
@@ -174,9 +166,6 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
     return isHit;
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
 void
 Raytracer::Clear()
 {
@@ -188,9 +177,7 @@ Raytracer::Clear()
     }
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 void
 Raytracer::UpdateMatrices()
 {
@@ -199,9 +186,7 @@ Raytracer::UpdateMatrices()
     this->frustum = basis;
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 Color
 Raytracer::Skybox(vec3 direction)
 {
@@ -219,3 +204,160 @@ int Raytracer::RayCounter()
 bool Raytracer::Sphereintersect(Object* objArr[],float t) {
     return true;
 }
+*/
+
+
+
+#include "raytracer.h"
+#include <thread>
+#include <random>
+#include <algorithm>
+#include <cassert>
+#include <cfloat>
+
+int rayCount = 0;
+std::vector<Object*> uniqueObjects; //store all the objects once so that they dont have to be re counted for every pixel
+
+
+void Raytracer::SetObjectArr()
+{
+    for (auto* obj : this->objects)
+    {
+        auto it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(),
+            [obj](const auto& val) { return obj->GetId() == val->GetId(); });
+        if (it == uniqueObjects.end())
+            uniqueObjects.push_back(obj);
+    }
+}
+
+
+Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces): frameBuffer(frameBuffer), rpp(rpp), bounces(bounces), width(w), height(h)
+{
+}
+
+
+void Raytracer::Raytrace()
+{
+    //splits the pixels into rows and uses multithreading - faster for the most part except when
+    // there is a low amount of pixels in the first place e.g. 100x100
+    int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) num_threads = 4; // Fallback
+    std::vector<std::thread> threads;
+
+    auto render_rows = [this](int start_y, int end_y) {
+        static thread_local std::mt19937 generator(1337); // randomness with seed to make image more realistic (no hard edges etc)
+        std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+        for (int y = start_y; y < end_y; ++y)
+        {
+            for (int x = 0; x < this->width; ++x)
+            {
+                Color color{};
+                for (int i = 0; i < this->rpp; ++i)
+                {
+                    float u = ((x + dis(generator)) / float(this->width)) * 2.0f - 1.0f;
+                    float v = ((y + dis(generator)) / float(this->height)) * 2.0f - 1.0f;
+
+                    vec3 direction = transform(vec3(u, v, -1.0f), this->frustum);
+
+                    Ray ray(get_position(this->view), direction);
+                    color += this->TracePath(ray, 0);
+                    ++rayCount;
+                }
+
+                //color /= float(this->rpp);
+                color.r /= this->rpp; 
+                color.g /= this->rpp; 
+                color.b /= this->rpp;
+                this->frameBuffer[y * this->width + x] += color;
+            }
+        }
+        };
+
+    // Split rows across threads
+    int rows_per_thread = this->height / num_threads;
+    for (int t = 0; t < num_threads; ++t)
+    {
+        int start = t * rows_per_thread;
+        int end = (t == num_threads - 1) ? this->height : start + rows_per_thread;
+        threads.emplace_back(render_rows, start, end);
+    }
+    // Join threads
+    for (auto& th : threads) th.join();
+}
+
+
+Color Raytracer::TracePath(Ray ray, unsigned n)
+{
+    vec3 hitPoint, hitNormal;
+    Object* hitObject = nullptr;
+    float distance = FLT_MAX;
+
+    if (Raycast(ray, hitPoint, hitNormal, hitObject, distance, this->objects))
+    {
+        ++rayCount;
+        Ray scattered = hitObject->ScatterRay(ray, hitPoint, hitNormal);
+
+        if (n < this->bounces)
+            return hitObject->GetColor() * TracePath(scattered, n + 1);
+
+        if (n == this->bounces)
+            return { 0,0,0 };
+    }
+
+    return this->Skybox(ray.m);
+}
+
+bool Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*>)
+{
+    HitResult closestHit;
+    HitResult hit;
+
+    for (auto* object : uniqueObjects) //uses pre prepared array of objects and doesnt sort for no reason 
+    {
+        auto opt = object->Intersect(ray, closestHit.t); 
+        if (opt.HasValue())
+        {
+            hit = opt.Get();
+            assert(hit.t < closestHit.t);
+            hitPoint = hit.p;
+            hitNormal = hit.normal;
+            hitObject = hit.object;
+            distance = hit.t;
+            return true;  //used to only return after every object has been checked 
+        }
+    }
+
+    hitPoint = closestHit.p;
+    hitNormal = closestHit.normal;
+    hitObject = closestHit.object;
+    return false;
+}
+
+
+void Raytracer::Clear()
+{
+    std::fill(frameBuffer.begin(), frameBuffer.end(), Color{ 0.0f, 0.0f, 0.0f });
+}
+
+
+void Raytracer::UpdateMatrices()
+{
+    mat4 inverseView = inverse(this->view);
+    this->frustum = transpose(inverseView);
+}
+
+
+Color Raytracer::Skybox(vec3 direction)
+{
+    float t = 0.5f * (direction.y + 1.0f);
+    vec3 color = vec3(1.0f, 1.0f, 1.0f) * (1.0f - t) + vec3(0.5f, 0.7f, 1.0f) * t;
+    return { float(color.x), float(color.y), float(color.z) };
+}
+
+
+int Raytracer::RayCounter()
+{
+    return rayCount;
+}
+

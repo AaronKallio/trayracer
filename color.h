@@ -26,4 +26,8 @@ struct Color
                 this->g * rhs.g,
                 this->b * rhs.b};
     }
+
+    Color operator/(float scalar) const {
+        return { r / scalar, g / scalar, b / scalar };
+    }
 };

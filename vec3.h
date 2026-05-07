@@ -5,6 +5,8 @@
 
 #define MPI 3.14159265358979323846
 
+
+/*
 class vec3
 {
 public:
@@ -148,4 +150,125 @@ inline vec3 cross(vec3 a, vec3 b)
     return { a.y * b.z - a.z * b.y,
              a.z * b.x - a.x * b.z,
              a.x * b.y - a.y * b.x, };
+}
+*/
+class vec3
+{
+public:
+    vec3() : x(0), y(0), z(0)
+    {
+        UpdateIsNormalizedVariable();
+        UpdateIsZeroVariable();
+    }
+
+    vec3(double x, double y, double z) : x(x), y(y), z(z)
+    {
+        UpdateIsNormalizedVariable();
+        UpdateIsZeroVariable();
+    }
+
+    vec3(std::initializer_list<double> const il)
+    {
+        assert(il.size() == 3);
+        auto it = il.begin();
+        x = *it++;
+        y = *it++;
+        z = *it++;
+
+        UpdateIsNormalizedVariable();
+        UpdateIsZeroVariable();
+    }
+
+    ~vec3() = default;
+
+    vec3(vec3 const& rhs)
+    {
+        x = rhs.x;
+        y = rhs.y;
+        z = rhs.z;
+
+        UpdateIsNormalizedVariable();
+        UpdateIsZeroVariable();
+    }
+
+    vec3 operator+(vec3 const& rhs) const { return { x + rhs.x, y + rhs.y, z + rhs.z }; }
+    vec3 operator-(vec3 const& rhs) const { return { x - rhs.x, y - rhs.y, z - rhs.z }; }
+    vec3 operator-() const { return { -x, -y, -z }; }
+    vec3 operator*(float const c) const { return { x * c, y * c, z * c }; }
+
+    double x, y, z;
+
+    bool IsNormalized() const { return isNormalized; }
+    bool IsZero() const { return isZero; }
+
+private:
+    void UpdateIsNormalizedVariable();
+    void UpdateIsZeroVariable();
+
+    bool isNormalized;
+    bool isZero;
+};
+
+// squared length (internal helper)
+inline double len2(vec3 const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+// length
+inline double len(vec3 const& v)
+{
+    return std::sqrt(len2(v));
+}
+
+// normalized version
+inline vec3 normalize(vec3 const& v)
+{
+    double l2 = len2(v);
+    if (l2 == 0.0)
+        return vec3(0, 0, 0);
+
+    double inv = 1.0 / std::sqrt(l2);
+    return vec3(v.x * inv, v.y * inv, v.z * inv);
+}
+
+inline void vec3::UpdateIsNormalizedVariable()
+{
+    constexpr double eps = 1e-9;
+    isNormalized = std::abs(len2(*this) - 1.0) < eps;
+}
+
+inline void vec3::UpdateIsZeroVariable()
+{
+    constexpr double eps = 1e-12;
+    isZero = len2(*this) < eps;
+}
+
+// piecewise multiplication between two vectors
+inline vec3 mul(vec3 a, vec3 b)
+{
+    return { a.x * b.x, a.y * b.y, a.z * b.z };
+}
+
+// piecewise add between two vectors
+inline vec3 add(vec3 a, vec3 b)
+{
+    return { a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+inline float dot(vec3 const& a, vec3 const& b)
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline vec3 reflect(vec3 const& v, vec3 const& n)
+{
+    return v - n * (2 * dot(v, n));
+}
+
+inline vec3 cross(vec3 const& a, vec3 const& b)
+{
+    return { a.y * b.z - a.z * b.y,
+             a.z * b.x - a.x * b.z,
+             a.x * b.y - a.y * b.x };
 }

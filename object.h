@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include "ray.h"
 #include "color.h"
@@ -7,9 +8,7 @@
 
 class Object;
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 struct HitResult
 {
     // hit point
@@ -87,9 +86,7 @@ private:
     std::shared_ptr<HitResult> value = nullptr;
 };
 
-//------------------------------------------------------------------------------
-/**
-*/
+
 class Object
 {
 public:
@@ -128,5 +125,138 @@ private:
     volatile bool isBigObject = false;
     volatile char* name;
     int id;
+    std::string purpose;
+};
+*/
+
+#pragma once
+#include "ray.h"
+#include "color.h"
+#include <float.h>
+#include <string>
+#include <memory>
+#include <cassert>
+#include <immintrin.h>
+
+class Object;
+
+
+struct HitResult
+{
+    vec3 p;              // hit point
+    vec3 normal;         // normal
+    Object* object = nullptr;
+    float t = FLT_MAX;   // intersection distance
+};
+
+
+struct Ray4
+{
+    __m128 ox, oy, oz;   // ray origins
+    __m128 dx, dy, dz;   // ray directions
+};
+
+
+struct Hit4
+{
+    __m128 t;            // hit distances
+    __m128 mask;         // 1.0 = hit, 0.0 = no hit
+};
+
+
+template<class TYPE>
+class Optional
+{
+public:
+    Optional() = default;
+
+    Optional(HitResult hit)
+        : hasValue(true),
+        value(std::make_shared<HitResult>(hit))
+    {
+    }
+
+    bool HasValue() const
+    {
+        if (!hasValue || !value)
+            return false;
+
+        // Validate hit content
+        if (value->object == nullptr)
+            return false;
+
+        if (value->normal.IsZero())
+            return false;
+
+        return true;
+    }
+
+    HitResult Get() const
+    {
+        assert(HasValue());
+        return *value;
+    }
+
+private:
+    bool hasValue = false;
+    std::shared_ptr<HitResult> value;
+};
+
+
+class Object
+{
+public:
+    Object()
+    {
+        static int idCounter = 0;
+        id = idCounter++;
+
+        // Allocate name buffer
+        name = new char[256];
+        std::strcpy(name, "Unnamed");
+    }
+
+    virtual ~Object()
+    {
+        delete[] name;
+    }
+
+    virtual Optional<HitResult> Intersect(Ray ray, float maxDist)
+    {
+        return {};
+    }
+
+    virtual Hit4 Intersect4(
+        Ray4 ray,
+        __m128 cx,
+        __m128 cy,
+        __m128 cz,
+        float radius,
+        float maxDist)
+    {
+        return {};
+    }
+
+    virtual Color GetColor() = 0;
+
+    virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal)
+    {
+        return Ray({ 0,0,0 }, { 1,1,1 });
+    }
+
+    std::string GetName() const
+    {
+        return std::string(name);
+    }
+
+    int GetId() const
+    {
+        return id;
+    }
+
+private:
+    bool isBigObject = false;   // removed volatile
+    char* name = nullptr;      // removed volatile
+    int id = 0;
     std::string purpose;
 };

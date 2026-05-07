@@ -1,3 +1,4 @@
+
 #pragma once
 #include "object.h"
 #include <stdlib.h>
@@ -86,5 +87,43 @@ public:
     {
         return BSDF(this->material, ray, point, normal);
     }
+    Hit4 Intersect4(Ray4 ray, __m128 cx, __m128 cy, __m128 cz, float radius, float maxDist) override {
+        // ray origin minus sphere center
+        __m128 ox = _mm_sub_ps(ray.ox, cx);
+        __m128 oy = _mm_sub_ps(ray.oy, cy);
+        __m128 oz = _mm_sub_ps(ray.oz, cz);
 
+        // b = dot(oc, dir)
+        __m128 b = _mm_add_ps(
+            _mm_add_ps(
+                _mm_mul_ps(ox, ray.dx),
+                _mm_mul_ps(oy, ray.dy)
+            ),
+            _mm_mul_ps(oz, ray.dz)
+        );
+
+        // c = dot(oc, oc) - r^2
+        __m128 c = _mm_sub_ps(
+            _mm_add_ps(
+                _mm_add_ps(_mm_mul_ps(ox, ox), _mm_mul_ps(oy, oy)),
+                _mm_mul_ps(oz, oz)
+            ),
+            _mm_set1_ps(radius * radius)
+        );
+
+        // discriminant = b*b - c
+        __m128 disc = _mm_sub_ps(_mm_mul_ps(b, b), c);
+
+        // mask = disc > 0
+        __m128 mask = _mm_cmpgt_ps(disc, _mm_set1_ps(0.0f));
+
+        // t = -b - sqrt(disc)
+        __m128 t = _mm_sub_ps(_mm_set1_ps(0.0f), b);
+        t = _mm_sub_ps(t, _mm_sqrt_ps(disc));
+
+        Hit4 hit;
+        hit.mask = mask;
+        hit.t = t;
+        return hit;
+    }
 };
