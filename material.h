@@ -16,10 +16,11 @@ struct Material
         just because figuring out a good IOR for ex. plastics is too much work
     */
     //1 = Labertian  2 = Dielectric   3 = Conductor
+    Material();
     int type = 1;
     Color color = {0.5f,0.5f,0.5f};
     float roughness = 0.75;
-
+    float F0;
     // this is only needed for dielectric materials.
     float refractionIndex = 1.44;
 };
@@ -28,4 +29,4 @@ struct Material
 /**
     Scatter ray against material
 */
-Ray BSDF(Material const* const material, Ray ray, vec3 point, vec3 normal);
+Ray BSDF(Material const* const material,const Ray& ray, vec3& point, vec3& normal);

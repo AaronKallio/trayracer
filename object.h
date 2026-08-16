@@ -212,16 +212,16 @@ public:
         id = idCounter++;
 
         // Allocate name buffer
-        name = new char[256];
-        std::strcpy(name, "Unnamed");
+        //name = new char[256];
+        //std::strcpy(name, "Unnamed");
     }
 
     virtual ~Object()
     {
-        delete[] name;
+    //    delete[] name;
     }
 
-    virtual Optional<HitResult> Intersect(Ray ray, float maxDist)
+    virtual Optional<HitResult> Intersect(const Ray& ray, float maxDist, float len)
     {
         return {};
     }
@@ -239,15 +239,15 @@ public:
 
     virtual Color GetColor() = 0;
 
-    virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal)
+    virtual Ray ScatterRay(const Ray& ray, vec3& point, vec3& normal)
     {
         return Ray({ 0,0,0 }, { 1,1,1 });
     }
 
-    std::string GetName() const
-    {
-        return std::string(name);
-    }
+    //std::string GetName() const
+    //{
+    //    return std::string(name);
+    //}
 
     int GetId() const
     {
@@ -255,8 +255,8 @@ public:
     }
 
 private:
-    bool isBigObject = false;   // removed volatile
-    char* name = nullptr;      // removed volatile
+    //bool isBigObject = false;   // removed volatile
+    //char* name = nullptr;      // removed volatile
     int id = 0;
-    std::string purpose;
+   // std::string purpose;
 };

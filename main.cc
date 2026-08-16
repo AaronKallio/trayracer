@@ -130,7 +130,7 @@ int main()
             rt.AddObject(ground);
         }
     }
-    
+    std::cout << " bud " << '\n';
     bool exit = false;
 
     // camera
@@ -188,8 +188,8 @@ int main()
             rt.Clear();
             frameIndex = 0;
         }
-        auto start = std::chrono::high_resolution_clock::now();
         rt.SetObjectArr();
+        auto start = std::chrono::high_resolution_clock::now();
         rt.Raytrace();
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;

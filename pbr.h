@@ -9,7 +9,11 @@
 inline float
 FresnelSchlick(float cosTheta, float F0, float roughness)
 {
-    return F0 + (fmax(1.0f - roughness, F0) - F0) * pow(2, ((-5.55473f*cosTheta - 6.98316f) * cosTheta));
+    //return F0 + (fmax(1.0f - roughness, F0) - F0) * pow(2, ((-5.55473f*cosTheta - 6.98316f) * cosTheta));
+    const float x = 1.0f - cosTheta;
+    const float x2 = x * x;
+
+    return F0 + (1.0f - F0) * x2 * x2 * x;
 }
 
 //------------------------------------------------------------------------------

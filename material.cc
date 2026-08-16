@@ -9,9 +9,12 @@
 /**
 */
 Ray
-BSDF(Material const* const material, Ray ray, vec3 point, vec3 normal)
+BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
 {
-    float cosTheta = -dot(normalize(ray.m), normalize(normal));
+    //float cosTheta = -dot(normalize(ray.m), normalize(normal));
+    
+    const float cosTheta = -dot(ray.m, normal);
+
 
     if (material->type != 2)
     {
@@ -32,11 +35,13 @@ BSDF(Material const* const material, Ray ray, vec3 point, vec3 normal)
             // importance sample with brdf specular lobe
             vec3 H = ImportanceSampleGGX_VNDF(RandomFloat(), RandomFloat(), material->roughness, ray.m, basis);
             vec3 reflected = reflect(ray.m, H);
-            return { point, normalize(reflected) };
+            //return { point, normalize(reflected) };
+            return { point, reflected };
         }
         else
         {
-            return { point, normalize(normalize(normal) + random_point_on_unit_sphere()) };
+            //return { point, normalize(normalize(normal) + random_point_on_unit_sphere()) };
+            return { point, normalize(normal + random_point_on_unit_sphere()) };
         }
     }
     else
@@ -52,7 +57,8 @@ BSDF(Material const* const material, Ray ray, vec3 point, vec3 normal)
         {
             outwardNormal = -normal;
             niOverNt = material->refractionIndex;
-            cosine = cosTheta * niOverNt / len(rayDir);
+            //cosine = cosTheta * niOverNt / len(rayDir);
+            cosine = cosTheta;
         }
         else
         {
@@ -61,10 +67,12 @@ BSDF(Material const* const material, Ray ray, vec3 point, vec3 normal)
             cosine = cosTheta / len(rayDir);
         }
 
-        if (Refract(normalize(rayDir), outwardNormal, niOverNt, refracted))
+        //if (Refract(normalize(rayDir), outwardNormal, niOverNt, refracted))
+        if (Refract(rayDir, outwardNormal, niOverNt, refracted))
         {
             // fresnel reflectance at 0 deg incidence angle
-            float F0 = powf(material->refractionIndex - 1, 2) / powf(material->refractionIndex + 1, 2);
+            //float F0 = powf(material->refractionIndex - 1, 2) / powf(material->refractionIndex + 1, 2);
+            float F0 = material->F0;
             reflect_prob = FresnelSchlick(cosine, F0, material->roughness);
         }
         else
@@ -81,4 +89,8 @@ BSDF(Material const* const material, Ray ray, vec3 point, vec3 normal)
             return { point, refracted };
         }
     }
+}
+
+Material::Material() {
+    F0 = powf(refractionIndex - 1, 2) / powf(refractionIndex + 1, 2);
 }

@@ -46,14 +46,14 @@ public:
         return material->color;
     }
 
-    
-    Optional<HitResult> Intersect(Ray ray, float maxDist) override
+    const float minDist = 0.001f;
+    Optional<HitResult> Intersect(const Ray& ray, float maxDist, float len) override
     {
-        constexpr float minDist = 0.001f;
-        float len = sqrt(
-            ray.m.x * ray.m.x +
-            ray.m.y * ray.m.y +
-            ray.m.z * ray.m.z);
+        
+        //float len = sqrt(
+        //    ray.m.x * ray.m.x +
+        //    ray.m.y * ray.m.y +
+        //    ray.m.z * ray.m.z);
 
         vec3 dir = {ray.m.x / len,ray.m.y / len,ray.m.z / len}; //normalise ray.m for reduced calculation
         vec3 oc = ray.b - center;
@@ -83,7 +83,7 @@ public:
    
 
     
-    Ray ScatterRay(Ray ray, vec3 point, vec3 normal) override
+    Ray ScatterRay(const Ray& ray, vec3& point, vec3& normal) override
     {
         return BSDF(this->material, ray, point, normal);
     }

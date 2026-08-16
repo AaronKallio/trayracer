@@ -161,13 +161,13 @@ public:
         UpdateIsZeroVariable();
     }
 
-    vec3(double x, double y, double z) : x(x), y(y), z(z)
+    vec3(float x, float y, float z) : x(x), y(y), z(z)
     {
         UpdateIsNormalizedVariable();
         UpdateIsZeroVariable();
     }
 
-    vec3(std::initializer_list<double> const il)
+    vec3(std::initializer_list<float> const il)
     {
         assert(il.size() == 3);
         auto it = il.begin();
@@ -196,7 +196,7 @@ public:
     vec3 operator-() const { return { -x, -y, -z }; }
     vec3 operator*(float const c) const { return { x * c, y * c, z * c }; }
 
-    double x, y, z;
+    float x, y, z;
 
     bool IsNormalized() const { return isNormalized; }
     bool IsZero() const { return isZero; }
@@ -210,13 +210,13 @@ private:
 };
 
 // squared length (internal helper)
-inline double len2(vec3 const& v)
+inline float len2(vec3 const& v)
 {
     return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
 // length
-inline double len(vec3 const& v)
+inline float len(vec3 const& v)
 {
     return std::sqrt(len2(v));
 }
@@ -224,23 +224,23 @@ inline double len(vec3 const& v)
 // normalized version
 inline vec3 normalize(vec3 const& v)
 {
-    double l2 = len2(v);
+    float l2 = len2(v);
     if (l2 == 0.0)
         return vec3(0, 0, 0);
 
-    double inv = 1.0 / std::sqrt(l2);
+    float inv = 1.0 / std::sqrt(l2);
     return vec3(v.x * inv, v.y * inv, v.z * inv);
 }
 
 inline void vec3::UpdateIsNormalizedVariable()
 {
-    constexpr double eps = 1e-9;
+    constexpr float eps = 1e-9;
     isNormalized = std::abs(len2(*this) - 1.0) < eps;
 }
 
 inline void vec3::UpdateIsZeroVariable()
 {
-    constexpr double eps = 1e-12;
+    constexpr float eps = 1e-12;
     isZero = len2(*this) < eps;
 }
 
