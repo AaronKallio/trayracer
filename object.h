@@ -137,7 +137,8 @@ private:
 #include <memory>
 #include <cassert>
 #include <immintrin.h>
-
+#include "material.h"
+#include <vector>
 class Object;
 
 
@@ -259,4 +260,17 @@ private:
     //char* name = nullptr;      // removed volatile
     int id = 0;
    // std::string purpose;
+};
+
+
+class OptimisedObject {
+public:
+    //std::vector<int> id;
+    std::vector<float> radius;
+    std::vector<vec3> centre;
+    //Material const* const material[];
+    std::vector<Material* > material;
+
+
+
 };

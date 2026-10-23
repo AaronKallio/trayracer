@@ -63,13 +63,17 @@ int main()
     mat->color = { 0.5,0.5,0.5 };
     mat->roughness = 0.3;
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
+
+ 
+   // optimisedObj.
+    
     rt.AddObject(ground);
     //will make sphereNum amount of spheres instead of sphereNum * 3 
     for (int it = 0; it < sphereNum; it++)
     {
         int ball = ballType(rng); //random number to randomly choose which type of sphere
 
-        if(ball ==1)
+        if(ball ==0)
         {
             Material* mat = new Material();
                 mat->type = 1;
@@ -89,7 +93,7 @@ int main()
                     mat);
             rt.AddObject(ground);
         }
-        else if(ball==3)
+        else if(ball==2)
         {
             Material* mat = new Material();
             mat->type = 3;
@@ -130,6 +134,40 @@ int main()
             rt.AddObject(ground);
         }
     }
+
+    
+    OptimisedObject optimisedObj;
+    optimisedObj.material.reserve(sphereNum);
+    optimisedObj.radius.reserve(sphereNum);
+    optimisedObj.centre.reserve(sphereNum);
+    //std::cout << optimisedObj.centre.size();
+    for (int it = 0; it < sphereNum; it++)
+    {
+        int ball = ballType(rng); //random number to randomly choose which type of sphere
+
+        if (ball == 1)
+        {
+            Material* mat = new Material();
+            mat->type = 1;
+            float r = dist(rng);
+            float g = dist(rng);
+            float b = dist(rng);
+            mat->color = { r,g,b };
+            mat->roughness = dist(rng);
+            const float span = 10.0f;
+            //optimisedObj.material[sphereNum] = mat;
+            //optimisedObj.radius[sphereNum] = dist(rng) * 0.7f + 0.2f;
+            //optimisedObj.centre[sphereNum] = {distMinus(rng) * span,dist(rng) * span + 0.2f,distMinus(rng) * span};
+        }
+        else if (ball == 3)
+        {
+
+        }
+        else {
+
+        }
+    }
+    
     std::cout << " bud " << '\n';
     bool exit = false;
 
