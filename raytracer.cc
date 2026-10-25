@@ -344,8 +344,8 @@ Color Raytracer::TracePathOpti(const Ray& ray, unsigned n)
         Ray scattered = BSDF(objs->material[obj], ray, hitPoint, hitNormal);
         Color color = { 1,0,0 };
         if (n < this->bounces)
-            //return objs->material[obj]->color * TracePathOpti(scattered, n + 1);
-            return objs->material[obj]->color;
+            return objs->material[obj]->color * TracePathOpti(scattered, n + 1);
+            //return objs->material[obj]->color;
         return { 0,0,0 };
     }
 
@@ -461,7 +461,7 @@ bool Raytracer::RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNormal, int
 
     hitPoint = pClose;
     hitNormal = normalClose;
-    hitIndex = hit;
+    hitIndex = closestHit;
     return false;
 }
 
