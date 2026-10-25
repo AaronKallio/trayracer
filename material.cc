@@ -11,11 +11,10 @@
 Ray
 BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
 {
-    //float cosTheta = -dot(normalize(ray.m), normalize(normal));
     
     const float cosTheta = -dot(ray.m, normal);
 
-
+    
     if (material->type != 2)
     {
         float F0 = 0.04f;
@@ -44,6 +43,7 @@ BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
             return { point, normalize(normal + random_point_on_unit_sphere()) };
         }
     }
+    
     else
     {
         vec3 outwardNormal;
@@ -52,7 +52,7 @@ BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
         float reflect_prob;
         float cosine;
         vec3 rayDir = ray.m;
-
+        
         if (cosTheta <= 0)
         {
             outwardNormal = -normal;
@@ -66,8 +66,7 @@ BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
             niOverNt = 1.0 / material->refractionIndex;
             cosine = cosTheta / len(rayDir);
         }
-
-        //if (Refract(normalize(rayDir), outwardNormal, niOverNt, refracted))
+        
         if (Refract(rayDir, outwardNormal, niOverNt, refracted))
         {
             // fresnel reflectance at 0 deg incidence angle
@@ -79,6 +78,8 @@ BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
         {
             reflect_prob = 1.0;
         }
+        
+        reflect_prob = 1.0;
         if (RandomFloat() < reflect_prob)
         {
             vec3 reflected = reflect(rayDir, normal);
@@ -88,7 +89,9 @@ BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
         {
             return { point, refracted };
         }
+        
     }
+    return { point, normal };
 }
 
 Material::Material() {

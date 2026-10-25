@@ -214,11 +214,12 @@ bool Raytracer::Sphereintersect(Object* objArr[],float t) {
 #include <algorithm>
 #include <cassert>
 #include <cfloat>
-
+#include <iostream>
 int rayCount = 0;
 std::vector<Object*> uniqueObjects; //store all the objects once so that they dont have to be re counted for every pixel
+OptimisedObject* objs;
 //std::vector<Object*>& objects;
-std::vector<Object*> sortedObj[64][64];
+//std::vector<Object*> sortedObj[64][64];
 void Raytracer::SetObjectArr()
 {
     for (auto* obj : this->objects)
@@ -230,7 +231,9 @@ void Raytracer::SetObjectArr()
     }
 }
 
-
+void Raytracer::SetOptArr() {
+    objs =  this->optObj;
+}
 
 void Raytracer::SetObjectSort() {
     for (auto* obj : objects)
@@ -273,7 +276,8 @@ void Raytracer::Raytrace()
 
                     Ray ray(cameraPos, direction);
 
-                    color += TracePath(ray, 0);
+                    //color += TracePath(ray, 0);
+                    color += TracePathOpti(ray, 0);
                 }
 
                 //color /= float(this->rpp);
@@ -302,6 +306,10 @@ Color Raytracer::TracePath(const Ray& ray, unsigned n)
 {
     vec3 hitPoint, hitNormal;
     Object* hitObject = nullptr;
+
+    float radius;
+    vec3 centre;
+    Material* mat;
     //float distance = FLT_MAX;
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject))//, distance))
@@ -320,6 +328,34 @@ Color Raytracer::TracePath(const Ray& ray, unsigned n)
 }
 
 
+Color Raytracer::TracePathOpti(const Ray& ray, unsigned n)
+{
+    vec3 hitPoint, hitNormal;
+    int obj = -1;
+    //float radius;
+    //vec3 centre;
+    //Material* mat;
+    //float distance = FLT_MAX;
+
+    if (RaycastOpti(ray, hitPoint, hitNormal, obj))//, distance))
+    {
+        //++rayCount;
+        //std::cout << " bruv bud ";
+        Ray scattered = BSDF(objs->material[obj], ray, hitPoint, hitNormal);
+        Color color = { 1,0,0 };
+        if (n < this->bounces)
+            //return objs->material[obj]->color * TracePathOpti(scattered, n + 1);
+            return objs->material[obj]->color;
+        return { 0,0,0 };
+    }
+
+    return this->Skybox(ray.m);
+}
+
+
+
+
+//BSDF(this->material, ray, point, normal)
 bool Raytracer::Raycast(const Ray& ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject){//, float& distance)//, std::vector<Object*>& objects)
 //{
     HitResult closestHit;
@@ -343,6 +379,7 @@ bool Raytracer::Raycast(const Ray& ray, vec3& hitPoint, vec3& hitNormal, Object*
         }
     }
 
+
     hitPoint = closestHit.p;
     hitNormal = closestHit.normal;
     hitObject = closestHit.object;
@@ -351,8 +388,82 @@ bool Raytracer::Raycast(const Ray& ray, vec3& hitPoint, vec3& hitNormal, Object*
 
 
 
+const float minDist = 0.001f;
+inline int IntersectOpti(const Ray& ray, float maxDist, float len, int i, float* tHit, vec3* pHit, vec3* normalHit)
+{
+
+    //float len = sqrt(
+    //    ray.m.x * ray.m.x +
+    //    ray.m.y * ray.m.y +
+    //    ray.m.z * ray.m.z);
+
+    vec3 dir = { ray.m.x / len,ray.m.y / len,ray.m.z / len }; //normalise ray.m for reduced calculation
+    vec3 oc = ray.b - objs->centre[i];
+    float b = dot(oc, dir);
+    float c = dot(oc, oc) - objs->radius[i] * objs->radius[i];
+    float discriminant = b * b - c;
+
+    // No intersection if discriminant < 0
+    if (discriminant < 0.0f)
+        return -1;
+
+    float sqrtDisc = sqrt(discriminant);
+    float temp = -b - sqrtDisc;
+    float temp2 = -b + sqrtDisc;
+    float t = (temp > minDist && temp < maxDist) ? temp : temp2;  //if temp is applicible then use temp otherwise use temp2
+    if (!(t > minDist && t < maxDist)) return -1;
+
+    // Compute hit
+    //HitResult hit;
+
+    *tHit = i;
+    *pHit = ray.b + dir * t;
+    *normalHit = (*pHit - objs->centre[i]) * (1.0f / objs->radius[i]);
+    //hit.object = this;
+
+    return i;
+}
 
 
+bool Raytracer::RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNormal, int hitIndex) {
+
+    float closestHit;
+    vec3 pClose;              // hit point
+    vec3 normalClose;         // normal
+    float tClose = FLT_MAX;
+
+    int hit;
+    vec3 p;              // hit point
+    vec3 normal;         // normal
+    float t = FLT_MAX;
+
+    float len = sqrt(
+        ray.m.x * ray.m.x +
+        ray.m.y * ray.m.y +
+        ray.m.z * ray.m.z);
+
+    for (int i = 0; i < objs->centre.size(); i++) //uses pre prepared array of objects and doesnt sort for no reason 
+    {
+        auto opt = IntersectOpti(ray, tClose, len, i, &closestHit, &pClose, &normalClose);
+        if (opt != -1)
+        {
+            hit = i;
+            assert(t < tClose);
+            hitPoint = p;
+            hitNormal = normal;
+            hitIndex = i;
+            distance = t;
+            return true;  //used to only return after every object has been checked 
+        }
+    }
+
+
+
+    hitPoint = pClose;
+    hitNormal = normalClose;
+    hitIndex = hit;
+    return false;
+}
 
 void Raytracer::Clear()
 {

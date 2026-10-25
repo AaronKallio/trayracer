@@ -19,13 +19,15 @@ public:
     // start raytracing!
     void Raytrace();
     void SetObjectArr();
+    void SetOptArr();
     void SetObjectSort();
     // add object to scene
     void AddObject(Object* obj);
+    void SetObject(OptimisedObject* obj);
 
     // single raycast, find object
     static bool Raycast(const Ray& ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject);//, float& distance);//, std::vector<Object*>& objects);
-
+    static bool RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNormal, int hitIndex);
     // set camera matrix
     void SetViewMatrix(mat4 val);
 
@@ -40,7 +42,7 @@ public:
     // trace a path and return intersection color
     // n is bounce depth
     Color TracePath(const Ray& ray, unsigned n);
-
+    Color TracePathOpti(const Ray& ray, unsigned n);
     // get the color of the skybox in a direction
     Color Skybox(const vec3& direction);
     bool Sphereintersect(Object* objArr[], float t);
@@ -69,11 +71,17 @@ public:
 
 private:
     std::vector<Object*> objects;
+    OptimisedObject* optObj;
 };
 
 inline void Raytracer::AddObject(Object* o)
 {
     this->objects.push_back(o);
+}
+
+inline void Raytracer::SetObject(OptimisedObject* o)
+{
+    this->optObj = o;
 }
 
 inline void Raytracer::SetViewMatrix(mat4 val)
