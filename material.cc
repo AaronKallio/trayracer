@@ -4,10 +4,12 @@
 #include "mat4.h"
 #include "sphere.h"
 #include "random.h"
-
+#include <algorithm>
 //------------------------------------------------------------------------------
 /**
 */
+
+
 Ray
 BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
 {
@@ -93,6 +95,9 @@ BSDF(Material const* const material, const Ray& ray, vec3& point, vec3& normal)
     }
     return { point, normal };
 }
+
+
+
 
 Material::Material() {
     F0 = powf(refractionIndex - 1, 2) / powf(refractionIndex + 1, 2);

@@ -43,9 +43,10 @@ public:
     // n is bounce depth
     Color TracePath(const Ray& ray, unsigned n);
     Color TracePathOpti(const Ray& ray, unsigned n);
+    //bool IntersectSphere(const Ray& ray, float maxT, int i, float* t, vec3* hitPoint, vec3* hitNormal);
     // get the color of the skybox in a direction
     Color Skybox(const vec3& direction);
-    bool Sphereintersect(Object* objArr[], float t);
+    //bool Sphereintersect(Object* objArr[], float t);
 
     std::vector<Color>& frameBuffer;
     

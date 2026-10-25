@@ -382,8 +382,8 @@ bool Raytracer::Raycast(const Ray& ray, vec3& hitPoint, vec3& hitNormal, Object*
 
 
 const float minDist = 0.001f;
-inline int IntersectOpti(const Ray& ray, float maxDist, float len, int i, float* tHit, vec3* pHit, vec3* normalHit)
-{
+
+inline int IntersectOpti(const Ray& ray, float maxDist, float len, int i, float* tHit, vec3* pHit, vec3* normalHit){
 
     vec3 dir = { ray.m.x / len,ray.m.y / len,ray.m.z / len };
     vec3 oc = ray.b - objs->centre[i];
@@ -406,6 +406,9 @@ inline int IntersectOpti(const Ray& ray, float maxDist, float len, int i, float*
     *normalHit = (*pHit - objs->centre[i]) * (1.0f / objs->radius[i]);
     return i;
 }
+
+
+
 
 /*
 bool Raytracer::RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNormal, int hitIndex) {
@@ -462,11 +465,13 @@ inline bool Raytracer::RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNorm
     float closestT = FLT_MAX;
     bool foundHit = false;
 
+    float tHit;
+    vec3 pHit;
+    vec3 normalHit;
+
     for (int i = 0; i < objs->centre.size(); ++i)
     {
-        float tHit;
-        vec3 pHit;
-        vec3 normalHit;
+        
 
         if (IntersectOpti(ray, closestT, len, i,&tHit, &pHit, &normalHit) != -1){
             closestT = tHit;
