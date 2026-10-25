@@ -27,7 +27,7 @@ public:
 
     // single raycast, find object
     static bool Raycast(const Ray& ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject);//, float& distance);//, std::vector<Object*>& objects);
-    static bool RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNormal, int hitIndex);
+    static bool RaycastOpti(const Ray& ray, vec3& hitPoint, vec3& hitNormal, int& hitIndex);
     // set camera matrix
     void SetViewMatrix(mat4 val);
 

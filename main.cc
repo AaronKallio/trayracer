@@ -159,7 +159,7 @@ int main()
             mat->roughness = dist(rng);
             const float span = 10.0f;
             optimisedObj.material.push_back(mat);
-            optimisedObj.radius.push_back(dist(rng) * 0.7f + 0.2f);
+            optimisedObj.radius.push_back(dist(rng) * 0.7f);
             optimisedObj.centre.push_back({ distMinus(rng) * span,dist(rng) * span + 0.2f,distMinus(rng) * span });
 
             //optimisedObj.material[sphereNum] = mat;
@@ -178,7 +178,7 @@ int main()
             mat->refractionIndex = 1.65;
             const float span = 25.0f;
             optimisedObj.material.push_back(mat);
-            optimisedObj.radius.push_back(dist(rng) * 0.7f + 0.2f);
+            optimisedObj.radius.push_back(dist(rng) * 0.7f);
             optimisedObj.centre.push_back({ distMinus(rng) * span,dist(rng) * span + 0.2f,distMinus(rng) * span });
 
         }
@@ -196,7 +196,7 @@ int main()
             mat->roughness = dist(rng);
             const float span = 30.0f;
             optimisedObj.material.push_back(mat);
-            optimisedObj.radius.push_back(dist(rng) * 0.7f + 0.2f);
+            optimisedObj.radius.push_back(dist(rng) * 0.7f);
             optimisedObj.centre.push_back({ distMinus(rng) * span,dist(rng) * span + 0.2f,distMinus(rng) * span });
 
         }
